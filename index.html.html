@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloudastructure Installer Network</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+#login-screen{position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0a1628,#0d2a4a,#1a3f6e);display:flex;align-items:center;justify-content:center;}
+#login-screen.hidden{display:none;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#e8f4fb;color:#1a3550;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+.lcard{background:#fff;border-radius:18px;padding:40px 44px;box-shadow:0 20px 60px rgba(0,0,0,0.4);width:400px;max-width:92vw;text-align:center;}
+.llogo{font-size:26px;font-weight:900;color:#0d2a4a;margin-bottom:4px;}
+.llogo em{color:#f5c400;font-style:normal;}
+.lsub{font-size:11px;color:#7a9abf;margin-bottom:22px;text-transform:uppercase;letter-spacing:1px;}
+.lcard h2{font-size:17px;font-weight:700;color:#1a3550;margin-bottom:18px;}
+.lfield{display:flex;flex-direction:column;gap:5px;margin-bottom:13px;text-align:left;}
+.lfield label{font-size:10px;font-weight:800;color:#0d2a4a;text-transform:uppercase;letter-spacing:0.5px;}
+.lfield input{padding:11px 14px;border-radius:8px;border:1.5px solid #c8dff0;font-size:14px;color:#1a3550;outline:none;width:100%;}
+.lfield input:focus{border-color:#1a5fa0;}
+.lbtn{width:100%;padding:12px;border-radius:25px;border:none;background:linear-gradient(135deg,#0d2a4a,#1a5fa0);color:#f5c400;font-size:14px;font-weight:800;cursor:pointer;margin-top:8px;}
+.lswitch{margin-top:13px;font-size:12px;color:#7a9abf;}
+.lswitch a{color:#1a5fa0;cursor:pointer;font-weight:700;}
+#lerr{min-height:18px;font-size:12px;margin-top:8px;color:#c03030;}
+hr.ldiv{border:none;border-top:1px solid #e8f2fa;margin:18px 0;}
+#header{background:linear-gradient(90deg,#0a1628,#0d2a4a);border-bottom:3px solid #f5c400;padding:0 18px;display:flex;align-items:stretch;min-height:52px;flex-shrink:0;box-shadow:0 3px 16px rgba(0,0,0,0.35);}
+.hlogo{font-size:17px;font-weight:900;color:#f5c400;white-space:nowrap;display:flex;align-items:center;padding-right:16px;border-right:1px solid rgba(245,196,0,0.2);margin-right:4px;flex-shrink:0;}
+.hlogo span{color:rgba(245,196,0,0.6);font-weight:400;font-size:11px;margin-left:6px;text-transform:uppercase;letter-spacing:0.5px;}
+#hf,#ht,#ha{display:flex;align-items:center;gap:6px;padding:0 12px;}
+#hf{border-right:1px solid rgba(255,255,255,0.1);}
+#ht{flex:1;border-right:1px solid rgba(255,255,255,0.1);}
+.fb{padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.8);cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap;transition:all 0.15s;}
+.fb:hover,.fb.on{background:rgba(255,255,255,0.14);color:#fff;}
+.fb.a-all{background:#f5c400;color:#0a1628;border-color:#f5c400;font-weight:800;}
+.fb.a-is{background:#378ADD;color:#fff;border-color:#378ADD;}
+.fb.a-io{background:#639922;color:#fff;border-color:#639922;}
+.fb.a-so{background:#EF9F27;color:#fff;border-color:#EF9F27;}
+#hsearch{padding:5px 13px;border-radius:20px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.1);color:#fff;font-size:11px;width:190px;outline:none;}
+#hsearch::placeholder{color:rgba(255,255,255,0.4);}
+#hadd{padding:5px 14px;border-radius:20px;border:1.5px solid #f5c400;background:#f5c400;color:#0a1628;cursor:pointer;font-size:11px;font-weight:800;display:none;}
+#hkml{padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.8);cursor:pointer;font-size:11px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;}
+#upill{padding:4px 11px;border-radius:20px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);font-size:11px;color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:7px;white-space:nowrap;}
+.rbadge{padding:2px 8px;border-radius:9px;font-size:10px;font-weight:800;background:#f5c400;color:#0a1628;}
+#hout{padding:3px 9px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.6);cursor:pointer;font-size:10px;}
+#main{display:flex;flex:1;overflow:hidden;position:relative;}
+#map{flex:1;}
+#sidebar{position:absolute;top:10px;right:10px;z-index:1000;width:285px;display:flex;flex-direction:column;background:#f0f7fd;border:1.5px solid #b8d8f0;border-radius:12px;overflow:hidden;box-shadow:0 6px 24px rgba(10,22,40,0.18);max-height:calc(100vh - 160px);}
+#shdr{padding:10px 13px;background:linear-gradient(135deg,#0d2a4a,#1a5fa0);font-size:11px;font-weight:800;color:#f5c400;letter-spacing:0.6px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;border-bottom:2px solid #f5c400;flex-shrink:0;}
+#shdr-left{display:flex;align-items:center;gap:8px;}
+#scount{color:rgba(245,196,0,0.65);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;}
+#stog{color:rgba(245,196,0,0.8);font-size:13px;background:none;border:none;cursor:pointer;padding:0;line-height:1;}
+#slist{overflow-y:auto;flex:1;}
+#slist::-webkit-scrollbar{width:4px;}
+#slist::-webkit-scrollbar-thumb{background:#a0c8e8;border-radius:2px;}
+#sidebar.collapsed #slist{display:none;}
+.srow{padding:9px 13px;border-bottom:1px solid #d5e9f5;cursor:pointer;transition:all 0.12s;display:flex;align-items:flex-start;gap:8px;}
+.srow:hover{background:#dceef8;border-left:3px solid #378ADD;}
+.sdot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.sinf{flex:1;min-width:0;}
+.sco{font-size:11px;font-weight:700;color:#0d2a4a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sme{font-size:10px;color:#6a9abf;margin-top:1px;}
+.sbad{font-size:9px;padding:2px 6px;border-radius:9px;font-weight:700;flex-shrink:0;}
+.bon{background:#d4f0df;color:#0a5a28;border:1px solid #7dd09a;}
+.bip{background:#fef0d5;color:#8a4a00;border:1px solid #f0c060;}
+#gp{position:absolute;top:10px;right:308px;z-index:1000;width:285px;background:#fff;border:1.5px solid #b8d8f0;border-radius:12px;overflow:hidden;box-shadow:0 6px 24px rgba(10,22,40,0.18);}
+#gph{background:linear-gradient(135deg,#0a1628,#0d2a4a);padding:9px 13px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;border-bottom:2px solid #f5c400;}
+#gph h3{color:#f5c400;font-size:11px;font-weight:800;}
+#gptog{color:rgba(245,196,0,0.7);font-size:13px;background:none;border:none;cursor:pointer;padding:0;}
+#gpb{max-height:320px;overflow-y:auto;}
+#gpb::-webkit-scrollbar{width:4px;}
+#gpb::-webkit-scrollbar-thumb{background:#a0c8e8;border-radius:2px;}
+.gi{padding:8px 12px;border-bottom:1px solid #eef5fb;display:flex;align-items:center;gap:8px;cursor:pointer;transition:background 0.12s;}
+.gi:hover{background:#f0f8ff;}
+.gb{display:inline-block;padding:2px 6px;border-radius:7px;font-size:9px;font-weight:800;white-space:nowrap;flex-shrink:0;}
+.gbf{background:#fde8e8;color:#b02020;border:1px solid #f0a0a0;}
+.gbp{background:#fef3d5;color:#8a5500;border:1px solid #f0c878;}
+.gbc{background:#ffd8d8;color:#900;border:1px solid #f08080;}
+.gbh{background:#fff0d8;color:#8a4000;border:1px solid #f0c060;}
+.gin{flex:1;min-width:0;}
+.gt{font-weight:700;color:#0d2a4a;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gs{font-size:10px;color:#7a9abf;margin-top:1px;}
+.gfb{padding:3px 8px;border-radius:9px;border:1.5px solid #1a5fa0;background:#f0f8ff;color:#1a5fa0;cursor:pointer;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.gfb:hover{background:#1a5fa0;color:#fff;}
+#gpf{padding:7px 13px;border-top:1px solid #eef5fb;background:#f8fcff;display:flex;align-items:center;justify-content:space-between;}
+#gpf span{font-size:10px;color:#7a9abf;}
+#gprc{padding:3px 9px;border-radius:9px;border:1.5px solid #1a5fa0;background:#fff;color:#1a5fa0;cursor:pointer;font-size:10px;font-weight:700;}
+#gp.collapsed #gpb,#gp.collapsed #gpf{display:none;}
+#gpe{padding:14px;color:#9abcd0;font-size:11px;text-align:center;font-style:italic;}
+#sbar{background:linear-gradient(90deg,#0a1628,#0d2a4a);border-top:2px solid #f5c400;padding:6px 18px;display:flex;gap:20px;align-items:center;flex-shrink:0;flex-wrap:wrap;}
+.si{display:flex;flex-direction:column;align-items:center;}
+.sv{font-size:16px;font-weight:800;line-height:1;}
+.sl{font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+.sdv{width:1px;height:26px;background:rgba(255,255,255,0.1);}
+.leaflet-popup-content-wrapper{background:#fff!important;border:none!important;border-radius:12px!important;box-shadow:0 8px 32px rgba(10,22,40,0.22),0 0 0 1.5px #b8d8f0!important;}
+.leaflet-popup-tip{background:#fff!important;}
+.leaflet-popup-content{margin:13px 15px!important;font-family:'Segoe UI',system-ui,sans-serif!important;}
+.pn{font-size:13px;font-weight:800;color:#0d2a4a;margin-bottom:7px;}
+.pg{display:grid;grid-template-columns:auto 1fr;gap:2px 9px;font-size:11px;}
+.pl{color:#8ab0cc;font-weight:700;white-space:nowrap;}
+.pv{color:#1a3550;}
+.pt{display:inline-block;padding:2px 8px;border-radius:9px;font-size:10px;font-weight:700;margin-top:6px;}
+.pt-is{background:#deeeff;color:#1a5fa0;border:1px solid #a0c8f0;}
+.pt-io{background:#e8f5d8;color:#3a6a10;border:1px solid #a0d060;}
+.pt-so{background:#fff0d0;color:#8a5000;border:1px solid #f0c060;}
+.pe{margin-top:8px;padding:5px;border-radius:9px;border:1.5px solid #1a5fa0;background:#f0f8ff;color:#1a5fa0;cursor:pointer;font-size:10px;font-weight:700;width:100%;}
+.pe:hover{background:#1a5fa0;color:#f5c400;}
+.pns{margin-top:8px;border-top:1px solid #eef5fb;padding-top:7px;}
+.pnl{font-size:10px;font-weight:800;color:#8ab0cc;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px;}
+.pnp{background:#fffbe6;border:1px solid #f0d060;border-radius:8px;padding:6px 9px;font-size:11px;color:#5a3c00;margin-bottom:4px;line-height:1.4;}
+.pnpm{font-size:9px;color:#a07820;margin-bottom:2px;font-weight:700;}
+.pno{width:100%;margin-top:6px;padding:6px;border-radius:9px;border:1.5px dashed #a0c8e8;background:#f0f8ff;color:#1a5fa0;cursor:pointer;font-size:11px;font-weight:700;}
+.pno:hover{background:#1a5fa0;color:#f5c400;border-style:solid;}
+.pst{width:100%;margin-top:5px;padding:5px;border-radius:9px;font-size:10px;font-weight:700;cursor:pointer;border:1.5px solid;transition:all 0.15s;}
+#leg{position:absolute;bottom:50px;left:10px;z-index:1000;background:rgba(10,22,40,0.92);border:1px solid rgba(245,196,0,0.3);border-radius:10px;padding:10px 14px;font-size:11px;backdrop-filter:blur(8px);}
+#leg h4{color:#f5c400;font-size:10px;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:7px;font-weight:800;}
+.lr{display:flex;align-items:center;gap:7px;margin-bottom:4px;color:rgba(255,255,255,0.85);font-size:10px;}
+.ld{width:11px;height:11px;border-radius:50%;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.4);}
+#mo{display:none;position:fixed;inset:0;z-index:9000;background:rgba(5,12,25,0.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+#mo.open{display:flex;}
+#mdiv{background:#fff;border-radius:14px;box-shadow:0 12px 50px rgba(0,0,0,0.35);width:620px;max-width:95vw;max-height:90vh;overflow-y:auto;border:1.5px solid #b8d8f0;}
+#mdiv::-webkit-scrollbar{width:5px;}
+#mdiv::-webkit-scrollbar-thumb{background:#a0c8e8;border-radius:3px;}
+#mh{padding:16px 20px 12px;background:linear-gradient(135deg,#0a1628,#0d2a4a);border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1;border-bottom:2px solid #f5c400;}
+#mt{font-size:15px;font-weight:800;color:#f5c400;}
+#mc{background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:17px;cursor:pointer;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;}
+#mc:hover{background:rgba(245,196,0,0.2);color:#f5c400;}
+#mb{padding:18px 20px;}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg.full{grid-column:1/-1;}
+.fg label{font-size:10px;font-weight:800;color:#0d2a4a;text-transform:uppercase;letter-spacing:0.4px;}
+.fg input,.fg select,.fg textarea{padding:7px 10px;border-radius:7px;border:1.5px solid #c8dff0;font-size:12px;color:#1a3550;font-family:inherit;outline:none;background:#f5faff;transition:border-color 0.15s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#1a5fa0;background:#fff;}
+.fg textarea{resize:vertical;min-height:60px;}
+.fs{grid-column:1/-1;font-size:10px;font-weight:800;color:#1a5fa0;text-transform:uppercase;letter-spacing:0.5px;padding-bottom:4px;border-bottom:2px solid #e0eef8;margin-top:4px;}
+#mf{padding:12px 20px 18px;display:flex;gap:9px;justify-content:flex-end;align-items:center;border-top:1px solid #e8f2fa;}
+.bcn{padding:7px 18px;border-radius:18px;border:1.5px solid #b8d8f0;background:#f0f7fd;color:#1a5fa0;cursor:pointer;font-size:12px;font-weight:700;}
+.bsv{padding:7px 22px;border-radius:18px;border:none;background:linear-gradient(135deg,#0d2a4a,#1a5fa0);color:#f5c400;cursor:pointer;font-size:12px;font-weight:800;}
+.bdl{padding:7px 14px;border-radius:18px;border:1.5px solid #f0a0a0;background:#fff5f5;color:#b02020;cursor:pointer;font-size:12px;font-weight:700;margin-right:auto;}
+.gcb{margin-top:5px;padding:4px 12px;border-radius:11px;border:1.5px solid #1a5fa0;background:#f0f8ff;color:#1a5fa0;cursor:pointer;font-size:11px;font-weight:700;width:fit-content;}
+#gcs{font-size:10px;margin-top:3px;}
+#ais{background:linear-gradient(135deg,#0a1628,#0d2a4a);border-radius:11px;padding:13px 15px;margin-bottom:16px;border:1.5px solid rgba(245,196,0,0.25);}
+#ail{font-size:11px;font-weight:800;color:#f5c400;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;}
+#aisb{font-size:10px;color:rgba(255,255,255,0.45);margin-bottom:8px;line-height:1.5;}
+#ait{width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#e8f4ff;font-family:inherit;font-size:12px;outline:none;resize:vertical;min-height:75px;line-height:1.5;}
+#ait:focus{border-color:rgba(245,196,0,0.5);}
+#ait::placeholder{color:rgba(255,255,255,0.25);}
+#aib{margin-top:8px;width:100%;padding:8px;border-radius:9px;border:none;background:linear-gradient(135deg,#f5c400,#ffd700);color:#0a1628;font-size:12px;font-weight:800;cursor:pointer;}
+#aist{margin-top:6px;font-size:11px;text-align:center;min-height:15px;color:rgba(255,255,255,0.5);}
+#aist.ok{color:#4dc46a;}
+#aist.err{color:#ff7070;}
+#np{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);z-index:8000;width:520px;max-width:96vw;background:#fff;border-radius:16px 16px 0 0;box-shadow:0 -8px 40px rgba(10,22,40,0.28);border:1.5px solid #b8d8f0;border-bottom:none;transition:transform 0.32s cubic-bezier(0.34,1.1,0.64,1);display:flex;flex-direction:column;}
+#np.open{transform:translateX(-50%) translateY(0);}
+#nph{background:linear-gradient(135deg,#0a1628,#0d2a4a);border-radius:14px 14px 0 0;padding:14px 18px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:2px solid #f5c400;}
+#npt{color:#f5c400;font-size:14px;font-weight:800;line-height:1.3;}
+#nps{color:rgba(255,255,255,0.55);font-size:11px;margin-top:2px;}
+#npc{background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.7);font-size:16px;cursor:pointer;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#npbd{padding:15px 18px;display:flex;flex-direction:column;gap:11px;}
+#nph2{background:#f5faff;border:1.5px solid #d5e9f5;border-radius:10px;padding:10px 13px;max-height:150px;overflow-y:auto;}
+.ne{padding:7px 0;border-bottom:1px solid #e0eef8;}
+.ne:last-child{border-bottom:none;}
+.nem{font-size:10px;color:#8ab0cc;margin-bottom:2px;display:flex;align-items:center;gap:5px;}
+.nea{font-weight:800;color:#1a5fa0;}
+.net{color:#1a3550;font-size:12px;line-height:1.5;white-space:pre-wrap;}
+#npe{color:#a0c4d8;font-size:12px;text-align:center;padding:10px 0;font-style:italic;}
+#npl{font-size:10px;font-weight:800;color:#0d2a4a;text-transform:uppercase;letter-spacing:0.4px;}
+#nptxt{width:100%;padding:10px 13px;border-radius:10px;border:1.5px solid #c8dff0;font-size:13px;color:#1a3550;font-family:inherit;outline:none;resize:none;background:#f5faff;min-height:85px;line-height:1.5;}
+#nptxt:focus{border-color:#1a5fa0;background:#fff;}
+#nptxt::placeholder{color:#b0cce0;}
+#npft{padding:9px 18px 15px;display:flex;gap:9px;align-items:center;justify-content:flex-end;border-top:1px solid #e8f2fa;}
+#npch{font-size:10px;color:#a0c4d8;margin-right:auto;}
+.bnpsv{padding:8px 22px;border-radius:18px;border:none;background:linear-gradient(135deg,#0d2a4a,#1a5fa0);color:#f5c400;cursor:pointer;font-size:13px;font-weight:800;}
+.bnpcn{padding:8px 16px;border-radius:18px;border:1.5px solid #c8dff0;background:#f0f7fd;color:#1a5fa0;cursor:pointer;font-size:13px;font-weight:700;}
+#sync{position:fixed;bottom:44px;right:10px;z-index:999;font-size:10px;color:#0d2a4a;background:rgba(245,196,0,0.9);padding:3px 10px;border-radius:9px;font-weight:700;}
+#toast{position:fixed;bottom:54px;left:50%;transform:translateX(-50%) translateY(20px);background:linear-gradient(135deg,#0d2a4a,#1a5fa0);color:#f5c400;padding:8px 20px;border-radius:18px;font-size:12px;font-weight:800;opacity:0;transition:all 0.3s;z-index:9999;pointer-events:none;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.err{background:linear-gradient(135deg,#7a0a0a,#c03030);color:#fff;}
+</style>
+</head>
+<body>
+<div id="login-screen">
+  <div class="lcard">
+    <div class="llogo">cloud<em>a</em>structure</div>
+    <div class="lsub">Installer Network</div>
+    <hr class="ldiv">
+    <h2 id="lh">Sign in to continue</h2>
+    <div class="lfield"><label>Email</label><input id="lemail" type="email" placeholder="you@cloudastructure.com" autocomplete="email"></div>
+    <div class="lfield"><label>Password</label><input id="lpass" type="password" placeholder="Password" autocomplete="current-password"></div>
+    <div id="lerr"></div>
+    <button class="lbtn" id="lbtn" onclick="doLogin()">Sign In</button>
+    <div class="lswitch">Don't have an account? Ask your admin to create one for you.</div>
+    <div class="lswitch" style="margin-top:6px"><a onclick="doForgotPassword()">Forgot password?</a></div>
+  </div>
+</div>
+
+<div id="header">
+  <div class="hlogo">Cloudastructure<span>Installer Network</span></div>
+  <div id="hf">
+    <button class="fb a-all" id="f-all" onclick="setFilter('all')">All</button>
+    <button class="fb" id="f-is" onclick="setFilter('Install & Support')">I&amp;S</button>
+    <button class="fb" id="f-io" onclick="setFilter('Install Only')">Install</button>
+    <button class="fb" id="f-so" onclick="setFilter('Support Only')">Support</button>
+  </div>
+  <div id="ht">
+    <input id="hsearch" type="text" placeholder="Search name, city, state..." oninput="applySearch(this.value)">
+    <button class="fb" id="hcov" onclick="toggleCircles()">Coverage</button>
+    <button class="fb" id="hsat" onclick="toggleSatellite()">Satellite</button>
+    <button class="fb on" id="hgap" onclick="toggleGapM()">Gaps</button>
+    <a id="hkml" href="#" onclick="downloadKML(event)">KML</a>
+    <button id="hadd" onclick="openModal()">+ Add</button>
+  </div>
+  <div id="ha">
+    <div id="upill">
+      <span id="ueml"></span>
+      <span class="rbadge" id="urol">Viewer</span>
+      <button id="hout" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+</div>
+
+<div id="main">
+  <div id="map"></div>
+  <div id="gp">
+    <div id="gph" onclick="toggleGapPanel()"><h3>Coverage Gap Analysis</h3><button id="gptog">&#9662;</button></div>
+    <div id="gpb"><div id="gpl"></div><div id="gpe" style="display:none">All markets covered!</div></div>
+    <div id="gpf"><span id="gpsum">Calculating...</span><button id="gprc" onclick="renderGaps()">Recalc</button></div>
+  </div>
+  <div id="sidebar">
+    <div id="shdr" onclick="toggleSidebar()">
+      <div id="shdr-left"><span>MASTER LIST</span><span id="scount">loading...</span></div>
+      <button id="stog">&#9662;</button>
+    </div>
+    <div id="slist"></div>
+  </div>
+</div>
+
+<div id="sbar">
+  <div class="si"><div class="sv" style="color:#f5c400" id="s-tot">0</div><div class="sl">Total</div></div>
+  <div class="sdv"></div>
+  <div class="si"><div class="sv" style="color:#5aabff" id="s-is">0</div><div class="sl">I&amp;S</div></div>
+  <div class="si"><div class="sv" style="color:#7ec44a" id="s-io">0</div><div class="sl">Install</div></div>
+  <div class="si"><div class="sv" style="color:#f5b84a" id="s-so">0</div><div class="sl">Support</div></div>
+  <div class="sdv"></div>
+  <div class="si"><div class="sv" style="color:#f5c400" id="s-5s">0</div><div class="sl">5-Star</div></div>
+  <div class="si"><div class="sv" style="color:#f5c400" id="s-av">-</div><div class="sl">Avg Rate</div></div>
+  <div class="si"><div class="sv" style="color:#f5b84a" id="s-ob">0</div><div class="sl">Onboarding</div></div>
+  <div class="sdv"></div>
+  <div class="si"><div class="sv" style="color:#ff7070" id="s-gp">0/0</div><div class="sl">Gaps</div></div>
+</div>
+
+<div id="mo">
+  <div id="mdiv">
+    <div id="mh"><span id="mt">Add Installer</span><button id="mc" onclick="closeModal()">&#10005;</button></div>
+    <div id="mb">
+      <div id="ais">
+        <div id="ail">&#10024; AI Auto-Fill</div>
+        <div id="aisb">Paste any email or text from a sub — AI extracts all info into the form automatically.</div>
+        <textarea id="ait" placeholder="Paste email or intro text here..."></textarea>
+        <button id="aib" onclick="parseAI()">&#10024; Extract Info into Form</button>
+        <div id="aist"></div>
+      </div>
+      <div class="fg2">
+        <div class="fs">Company Info</div>
+        <div class="fg full"><label>Company Name *</label><input id="fc" type="text" placeholder="Acme Security LLC"></div>
+        <div class="fg"><label>Status</label><select id="fst"><option value="Onboarded">Onboarded</option><option value="Onboarding In Progress">Onboarding In Progress</option></select></div>
+        <div class="fg"><label>Service Type</label><select id="fsv"><option value="Install & Support">Install &amp; Support</option><option value="Install Only">Install Only</option><option value="Support Only">Support Only</option></select></div>
+        <div class="fg"><label>Hourly Rate</label><input id="fr" type="text" placeholder="$100"></div>
+        <div class="fg"><label>Rating</label><select id="fg"><option value="">None</option><option value="★★★★★">★★★★★</option><option value="★★★★☆">★★★★☆</option><option value="★★★☆☆">★★★☆☆</option><option value="★★☆☆☆">★★☆☆☆</option><option value="☆☆☆☆☆">☆☆☆☆☆</option></select></div>
+        <div class="fg"><label>Other States</label><input id="fos" type="text" placeholder="CA, NV..."></div>
+        <div class="fs">Primary Contact</div>
+        <div class="fg"><label>Contact Name</label><input id="fn" type="text" placeholder="Jane Smith"></div>
+        <div class="fg"><label>Phone</label><input id="fp" type="text" placeholder="(555) 123-4567"></div>
+        <div class="fg full"><label>Email</label><input id="fe" type="email" placeholder="jane@company.com"></div>
+        <div class="fs">Location</div>
+        <div class="fg full">
+          <label>Street Address</label>
+          <input id="fa" type="text" placeholder="123 Main St, Phoenix, AZ 85001">
+          <button type="button" class="gcb" onclick="geocode()">Geocode Address</button>
+          <div id="gcs"></div>
+        </div>
+        <div class="fg"><label>City</label><input id="fci" type="text" placeholder="Phoenix"></div>
+        <div class="fg"><label>State</label><input id="fsa" type="text" placeholder="AZ"></div>
+        <div class="fg"><label>Latitude *</label><input id="flat" type="number" step="any" placeholder="33.4734"></div>
+        <div class="fg"><label>Longitude *</label><input id="flng" type="number" step="any" placeholder="-112.2033"></div>
+        <div class="fs">Activity &amp; Notes</div>
+        <div class="fg full"><label>Projects</label><input id="fpr" type="text" placeholder="Site A, Site B..."></div>
+        <div class="fg full"><label>Notes</label><textarea id="fno" style="min-height:100px;" placeholder="Notes about this installer..."></textarea></div>
+      </div>
+    </div>
+    <div id="mf">
+      <button class="bdl" id="mdl" onclick="deleteInstaller()" style="display:none">Remove</button>
+      <button class="bcn" onclick="closeModal()">Cancel</button>
+      <button class="bsv" onclick="saveInstaller()">Save Installer</button>
+    </div>
+  </div>
+</div>
+
+<div id="np">
+  <div id="nph">
+    <div><div id="npt">Notes</div><div id="nps"></div></div>
+    <button id="npc" onclick="closeNotes()">&#10005;</button>
+  </div>
+  <div id="npbd">
+    <div id="nph2"><div id="npe">No notes yet.</div></div>
+    <div>
+      <div id="npl">Add a Note</div>
+      <textarea id="nptxt" placeholder="Type a note..." oninput="document.getElementById('npch').textContent=this.value.length+' / 500'"></textarea>
+    </div>
+  </div>
+  <div id="npft">
+    <span id="npch">0 / 500</span>
+    <button class="bnpcn" onclick="closeNotes()">Cancel</button>
+    <button class="bnpsv" onclick="saveNote()">Save Note</button>
+  </div>
+</div>
+
+<div id="sync">Loading...</div>
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://fajliyybgxwiwaevcnmy.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhamxpeXliZ3h3aXdhZXZjbm15Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMTQ4NTgsImV4cCI6MjA5Nzg5MDg1OH0.cGnIZIF8midfkEZRI2k68dgO-HiaXwMnr7HQpYpbOjI';
+const ADMIN_EMAILS=['carmine@cloudastructure.com','maurizio@cloudastructure.com','graham@cloudastructure.com','shawna@cloudastructure.com','sydney@cloudastructure.com','joey@cloudastructure.com','eddie@cloudastructure.com','pam@cloudastructure.com','conor@cloudastructure.com','ed@cloudastructure.com','alfredo@cloudastructure.com'];
+const TABLE='installers';
+
+const SVC={'Install & Support':'#378ADD','Install Only':'#639922','Support Only':'#EF9F27'};
+
+const SEED_DATA = [
+  {id:'s1',company:"AZ IT Technology",status:"Onboarded",service_type:"Install & Support",contact:"Jose",phone:"480-280-9283",email:"zaittechnology500@gmail.com",rate:"$75",state:"AZ",city:"Phoenix",address:"6754 W Merrell St, Phoenix, AZ 85033",rating:"",projects:"Vista Sureno Service calls",notes:"$75/hour + materials",lat:33.4734,lng:-112.2033},
+  {id:'s2',company:"TFL - The Flying Locksmiths (Phoenix)",status:"Onboarded",service_type:"Install Only",contact:"Matt Eakins",phone:"(480) 387-0898",email:"matt.eakins@tflsecurity.com",rate:"$170",state:"AZ",city:"Phoenix",address:"11460 North Cave Creek Rd Suite #11 Phoenix, AZ 85020",rating:"★★★★★",projects:"Site walks",notes:"Does installations, not service",lat:33.6005,lng:-112.0586},
+  {id:'s3',company:"Reel Technologies Inc",status:"Onboarded",service_type:"Install & Support",contact:"Chris Wilson",phone:"(619) 654-7881",email:"chrisw@reeltechnologiesinc.com",rate:"$95",state:"CA",city:"El Cajon",address:"771 Jamacha Road #177, El Cajon CA",rating:"★★★★★",projects:"",notes:"",lat:32.7948,lng:-116.9625},
+  {id:'s4',company:"Tech23",status:"Onboarded",service_type:"Install & Support",contact:"Jared Zwolle",phone:"(619) 368-5785",email:"jared@t23.tech",rate:"$175",state:"CA",city:"San Diego",address:"2640 Financial Court Suite A, San Diego CA",rating:"★★★★★",projects:"iL Palazzo, Sunroad Props, Acacia, Pacific Urban Props",notes:"",lat:32.8328,lng:-117.1075},
+  {id:'s5',company:"Telcom Structured Cabling LLC",status:"Onboarded",service_type:"Install & Support",contact:"Aaron Cortez Sr.",phone:"(925) 640-0027",email:"acortez@telcomstructured.com",rate:"$110",state:"CA",city:"Bay Area",address:"392 Larch Rd #17, Tracy CA 95304",rating:"",projects:"",notes:"",lat:37.7396,lng:-121.4252},
+  {id:'s6',company:"Telcom Structured Cabling LLC",status:"Onboarded",service_type:"Install & Support",contact:"Regina Cortez",phone:"(925) 640-0027",email:"regina@telcomstructured.com",rate:"$110",state:"CA",city:"Bay Area",address:"392 Larch Rd #17, Tracy CA 95304",rating:"",projects:"",notes:"",lat:37.7420,lng:-121.4230},
+  {id:'s7',company:"Edgeworth Security",status:"Onboarded",service_type:"Support Only",contact:"",phone:"925-968-2632",email:"info@edgeworthsecurity.com",rate:"",state:"CA",city:"Bay Area",address:"1257 Quarry Lane, Suite 125, Pleasanton, CA 94566",rating:"",projects:"Skyway Door System",notes:"Only use for skyway door access if at all.",lat:37.6624,lng:-121.8747},
+  {id:'s8',company:"Tek Systems Corp",status:"Onboarded",service_type:"Install & Support",contact:"Bill Voong",phone:"949.774.8447",email:"BVoong@teksystems.pro",rate:"$115",state:"CA",city:"Orange",address:"3305 East Miraloma Ave Apt 175, Anaheim CA 92806",rating:"★★★★★",projects:"Zia",notes:"",lat:33.8304,lng:-117.8380},
+  {id:'s9',company:"Tek Systems Corp",status:"Onboarded",service_type:"Install & Support",contact:"Raul Flores",phone:"949-344-9070",email:"RFlores@teksystems.pro",rate:"$115",state:"CA",city:"Orange",address:"3305 East Miraloma Ave Apt 175, Anaheim CA 92806",rating:"★★★★★",projects:"Zia",notes:"",lat:33.8320,lng:-117.8370},
+  {id:'s10',company:"Tek Systems Corp",status:"Onboarded",service_type:"Install & Support",contact:"Michael Le",phone:"949-466-2579",email:"Mle@teksystems.pro",rate:"$115",state:"CA",city:"Orange",address:"3305 East Miraloma Ave Apt 175, Anaheim CA 92806",rating:"★★★★★",projects:"Zia",notes:"",lat:33.8310,lng:-117.8390},
+  {id:'s11',company:"Independent - Agunbiade Kolapo",status:"Onboarded",service_type:"Install & Support",contact:"Agunbiade Kolapo",phone:"661-904-2935",email:"Babatope_agunbiade@hotmail.com",rate:"$85",state:"CA",city:"Oakland",address:"26970 Hayward Blvd 107, Hayward CA 94542",rating:"★★★★☆",projects:"Denizen, service calls",notes:"",lat:37.6688,lng:-122.0810},
+  {id:'s12',company:"Independent - Kirill Belyakov",status:"Onboarded",service_type:"Install & Support",contact:"Kirill Belyakov",phone:"916-612-7373",email:"kirill.b@masterscis.net",rate:"",state:"CA",city:"Sacramento",address:"Sacramento, CA 95833",rating:"★★★★★",projects:"Sixy58, Waverly, Escala, Waterscape",notes:"",lat:38.5816,lng:-121.4944},
+  {id:'s13',company:"Independent - Memo Vasquez",status:"Onboarded",service_type:"Install & Support",contact:"Memo Vasquez",phone:"775-762-2803",email:"memo@alphaavcontrol.com",rate:"",state:"CA",city:"Tahoe",address:"5128 Greystone Dr, Reno, NV 89523",rating:"★★★★★",projects:"Gregorio Residence",notes:"",lat:39.4935,lng:-119.7871},
+  {id:'s14',company:"Infusion Technologies LLC",status:"Onboarded",service_type:"Install & Support",contact:"Olayinka Eluyemi",phone:"720-804-6629",email:"osbbyy@gmail.com",rate:"$120",state:"CO",city:"Denver",address:"4995 N Jackson St., Denver, CO 80216",rating:"★★★★★",projects:"Gold Crown Sites, all CO",notes:"Good communication, good installation",lat:39.7937,lng:-104.9390},
+  {id:'s15',company:"Tech Relativity",status:"Onboarded",service_type:"Install & Support",contact:"Matthew Meeuwen",phone:"(561) 284-3110",email:"admin@techrelscs.com",rate:"$120",state:"FL",city:"Lake Worth",address:"4241 Lake Worth Rd, Lake Worth Beach, FL 33461",rating:"★★★★☆",projects:"",notes:"Overall Good",lat:26.6193,lng:-80.0814},
+  {id:'s16',company:"1090 Wired",status:"Onboarded",service_type:"Install & Support",contact:"Mike St. Claire",phone:"(707) 934-0888",email:"Mike@1090wired.com",rate:"$125",state:"FL",city:"Loxahatchee",address:"17888 67th Court North, Loxahatchee FL",rating:"★★★★☆",projects:"",notes:"Can work out of state",lat:26.7476,lng:-80.3159},
+  {id:'s17',company:"Express Security Technologies",status:"Onboarded",service_type:"Install & Support",contact:"James Hilligas",phone:"(513) 706-7101",email:"svcdept@expresssecuritytech.com",rate:"$125",state:"FL",city:"Mulberry",address:"2455 Arnaz Drive, Mulberry FL",rating:"★★★★☆",projects:"",notes:"",lat:27.8981,lng:-81.9751},
+  {id:'s18',company:"ASE Integrations LLC",status:"Onboarded",service_type:"Install & Support",contact:"Greg Smith",phone:"813-557-4116",email:"gsmith@aseintegrations.com",rate:"$125",state:"FL",city:"Holiday",address:"Holiday, Florida",rating:"★★★★☆",projects:"",notes:"",lat:28.1908,lng:-82.7323},
+  {id:'s19',company:"HalyTek",status:"Onboarded",service_type:"Install & Support",contact:"Thaddeus",phone:"561-788-4532",email:"thaddeus@halytek.com",rate:"$150",state:"FL",city:"West Palm Beach",address:"101 Northpoint Pkwy, West Palm Beach, FL 33407",rating:"★★★★★",projects:"Westshore / American Landmark",notes:"South FL area",lat:26.7393,lng:-80.0880},
+  {id:'s20',company:"Low Voltage Cabling Contractors",status:"Onboarded",service_type:"Install Only",contact:"Eric Stewart",phone:"(850) 775-6755",email:"eric@lowvcabling.com",rate:"$155",state:"FL",city:"Panama City",address:"842 Harrison Ave, Panama City, FL 32401",rating:"",projects:"Andrews Place Service Call",notes:"New installs, cabling, mounting of cams",lat:30.1588,lng:-85.6602},
+  {id:'s21',company:"Arcitechx",status:"Onboarded",service_type:"Support Only",contact:"Jason Goodwin",phone:"(850) 601-5566",email:"jason@arcitechx.com",rate:"$155",state:"FL",city:"Panama City",address:"842 Harrison Ave, Panama City, FL 32401",rating:"",projects:"Andrews Place Service Call",notes:"IT company, after-install IT issues",lat:30.1600,lng:-85.6590},
+  {id:'s22',company:"Lockdown Protection",status:"Onboarded",service_type:"Install & Support",contact:"Rudie Coppin",phone:"404-200-3124",email:"coppin@lockdownprotection.com",rate:"",state:"GA",city:"Atlanta",address:"1650 Marietta Blvd NW E11, Atlanta, GA 30318",rating:"★★★★★",projects:"Amber Grove, Estuary, BLVD N",notes:"",lat:33.7960,lng:-84.4220},
+  {id:'s23',company:"Knine All Systems, Inc.",status:"Onboarded",service_type:"Install & Support",contact:"Erik K",phone:"(678) 977-5913",email:"erik.k@k9allsystems.com",rate:"$85",state:"GA",city:"Douglasville",address:"1331 Hiram Acworth Hwy, Dallas, GA 30157",rating:"★★★★★",projects:"",notes:"",lat:33.9230,lng:-84.8440},
+  {id:'s24',company:"Independent - Kirk Killion",status:"Onboarded",service_type:"Install & Support",contact:"Kirk",phone:"405-556-1360",email:"Kirk.killion@k3analytiks.com",rate:"$75",state:"IA",city:"Clive",address:"14153 Pinnacle Point Dr, Clive IA 50325",rating:"★★★★★",projects:"The Flats service call",notes:"",lat:41.6044,lng:-93.7419},
+  {id:'s25',company:"TFL - The Flying Locksmiths (Indianapolis)",status:"Onboarded",service_type:"Install & Support",contact:"Doug Hayden",phone:"307-973-0285",email:"Doug.Hayden@flyinglocksmiths.com",rate:"$115",state:"IN",city:"Noblesville",address:"7928 Zionsville Rd, Indianapolis IN 46268",rating:"★★★★★",projects:"Site walks",notes:"",lat:39.8820,lng:-86.2003},
+  {id:'s26',company:"TFL - The Flying Locksmiths (Indianapolis)",status:"Onboarded",service_type:"Install & Support",contact:"Bob Lewis",phone:"317-777-0437",email:"Bob.lewis@flylock.com",rate:"$115",state:"IN",city:"Noblesville",address:"7928 Zionsville Rd, Indianapolis IN 46268",rating:"★★★★★",projects:"Site walks",notes:"",lat:39.8840,lng:-86.2010},
+  {id:'s27',company:"Link Electric Company, LLC",status:"Onboarded",service_type:"Install & Support",contact:"Jason Horn",phone:"(502) 424-1750",email:"jason@link-electric.com",rate:"",state:"KY",city:"Louisville",address:"3817 Fitzgerald Road, Louisville KY 40216",rating:"★★★★★",projects:"",notes:"",lat:38.2227,lng:-85.8074},
+  {id:'s28',company:"Midpoint Technology Group",status:"Onboarded",service_type:"Install & Support",contact:"Chad Morris",phone:"301-351-0153",email:"cmorris@midtechgroup.com",rate:"",state:"MD",city:"Columbia",address:"7178 Columbia Gateway Drive, Columbia MD",rating:"★★★★☆",projects:"Willows",notes:"Site walks, needs better communication",lat:39.2043,lng:-76.8610},
+  {id:'s29',company:"Midpoint Technology Group",status:"Onboarded",service_type:"Install & Support",contact:"Joseph Oxner",phone:"443-481-0292",email:"joxner@midtechgroup.com",rate:"",state:"MD",city:"Columbia",address:"7178 Columbia Gateway Drive, Columbia MD",rating:"★★★★★",projects:"Willows",notes:"",lat:39.2060,lng:-76.8595},
+  {id:'s30',company:"Express-Tek",status:"Onboarded",service_type:"Install & Support",contact:"Lucas Ritenour",phone:"540-752-6691",email:"lritenour@express-tek.com",rate:"",state:"VA",city:"Fredericksburg",address:"1127 International Pkwy #293, Fredericksburg, VA 22406",rating:"★★★★★",projects:"Spring Valley Site Walk",notes:"",lat:38.3032,lng:-77.4605},
+  {id:'s31',company:"Unique Electrical Contractors",status:"Onboarded",service_type:"Install & Support",contact:"Ron Alexander",phone:"(704) 622-9034",email:"ronalexanderuec@gmail.com",rate:"$95",state:"NC",city:"Charlotte",address:"1220 N Wendover Rd, Charlotte, NC 28211",rating:"★★★★☆",projects:"",notes:"",lat:35.2271,lng:-80.8129},
+  {id:'s32',company:"Jarrett Security Systems LLC",status:"Onboarded",service_type:"Install & Support",contact:"Corey Delemar",phone:"(910) 960-7269",email:"corey@securitycam.pro",rate:"$110",state:"NC",city:"Fayetteville",address:"6188 Lakeway Dr, Fayetteville NC",rating:"★★★★☆",projects:"",notes:"",lat:35.0527,lng:-78.8784},
+  {id:'s33',company:"ICTS Protechs",status:"Onboarded",service_type:"Support Only",contact:"David Lopez",phone:"(201) 889-7078",email:"ictsdirect@gmail.com",rate:"$85",state:"NJ",city:"Secaucus",address:"733B Chestnut Street, Secaucus NJ",rating:"",projects:"Modera 55-NJ",notes:"IT company, after-install IT issues",lat:40.7896,lng:-74.0565},
+  {id:'s34',company:"DataPLUS Communications",status:"Onboarded",service_type:"Support Only",contact:"",phone:"702-795-3282",email:"service@dpcnv.com",rate:"",state:"NV",city:"Las Vegas",address:"769 Middlegate Road Henderson, NV 89011",rating:"",projects:"Sunroad, Presley",notes:"",lat:36.0240,lng:-114.9800},
+  {id:'s35',company:"Alarm1",status:"Onboarded",service_type:"Install & Support",contact:"Russ",phone:"330-850-5023",email:"russ@alarm1llc.com",rate:"$139.99",state:"OH",city:"Akron",address:"18241 Mill Road, Berlin Center, Ohio 44401",rating:"",projects:"Miller Bros, Campbell",notes:"",lat:41.0534,lng:-80.9676},
+  {id:'s36',company:"Spartan DATACOM",status:"Onboarded",service_type:"Install & Support",contact:"John McElravy",phone:"503-420-9443",email:"john@spartandatacom.tech",rate:"$100",state:"OR",city:"Portland",address:"859 Feather Cloud St NW, Salem OR 97304",rating:"★★★★★",projects:"Block 17 / AKoya / Storyline",notes:"Awesome, accommodating",lat:44.9429,lng:-123.0351},
+  {id:'s37',company:"Spartan DATACOM",status:"Onboarded",service_type:"Install & Support",contact:"Matt McElravy",phone:"1-503-409-8342",email:"matt@spartandatacom.tech",rate:"$100",state:"OR",city:"Portland",address:"859 Feather Cloud St NW, Salem OR 97304",rating:"★★★★★",projects:"Portera @ the Grove",notes:"Awesome, accommodating",lat:44.9440,lng:-123.0370},
+  {id:'s38',company:"RedSky Security",status:"Onboarded",service_type:"Install & Support",contact:"Eric Webb",phone:"(503) 688-4939",email:"eric@redskysecuritysolutions.com",rate:"",state:"OR/WA",city:"Covington",address:"PO Box 8552, Covington, WA 98042",rating:"★★★★★",projects:"Cordelia, Array",notes:"",lat:47.3596,lng:-122.1017},
+  {id:'s39',company:"RedSky Security",status:"Onboarded",service_type:"Install & Support",contact:"Mike Herkomer",phone:"",email:"mherkomer@redskysecurity.com",rate:"",state:"OR/WA",city:"Covington",address:"PO Box 8552, Covington, WA 98042",rating:"★★★★★",projects:"",notes:"",lat:47.3610,lng:-122.1000},
+  {id:'s40',company:"RedSky Security",status:"Onboarded",service_type:"Install & Support",contact:"John Ellison",phone:"(206) 476-8611",email:"jellison@redskysecurity.com",rate:"",state:"OR/WA",city:"Covington",address:"PO Box 8552, Covington, WA 98042",rating:"★★★★★",projects:"Cordelia, Array",notes:"",lat:47.3580,lng:-122.1030},
+  {id:'s41',company:"ComSurv",status:"Onboarded",service_type:"Install & Support",contact:"Jose Noy",phone:"(843) 532-5144",email:"jose@comsurv.com",rate:"$125",state:"SC",city:"Charleston",address:"6650 Rivers Ave, Charleston SC",rating:"★★★★☆",projects:"",notes:"",lat:32.9218,lng:-80.0168},
+  {id:'s42',company:"Schrock LVS, LLC",status:"Onboarded",service_type:"Install & Support",contact:"Sam Schrock",phone:"865-292-3093",email:"samschrocklv@gmail.com",rate:"$75",state:"TN",city:"Nashville",address:"961 Plantation Blvd, Gallatin, TN 37066",rating:"★★★★★",projects:"",notes:"",lat:36.3884,lng:-86.4460},
+  {id:'s43',company:"Houck Solutions",status:"Onboarded",service_type:"Install & Support",contact:"Nick Houck",phone:"(615) 604-0701",email:"Nicholas.Houck@houcksolutions.net",rate:"$75",state:"TN",city:"Nashville",address:"981 Harpeth Bend Dr, Nashville TN 37221",rating:"★★★★★",projects:"Elliston23",notes:"Easy to work with",lat:36.0793,lng:-86.9101},
+  {id:'s44',company:"Team1Solutions LLC",status:"Onboarded",service_type:"Install & Support",contact:"Luis De Santiago",phone:"(346) 932-4875",email:"customer-care@team1solutions.com",rate:"$120",state:"TX",city:"Galena Park",address:"1902 Riane Ln, Houston, TX 77049",rating:"★★★★☆",projects:"",notes:"",lat:29.7465,lng:-95.2213},
+  {id:'s45',company:"Safeguard",status:"Onboarded",service_type:"Install & Support",contact:"Aaron Shaner",phone:"214-334-5504",email:"aaron.shaner@sfgrd.com",rate:"$170",state:"TX",city:"Rockwall",address:"709B West Rusk St #906, Rockwall TX",rating:"★★★★★",projects:"Inwood, Vitae, Stafford Lakes",notes:"",lat:32.9318,lng:-96.4597},
+  {id:'s46',company:"Safeguard",status:"Onboarded",service_type:"Install & Support",contact:"Mark",phone:"214-334-5504",email:"",rate:"$170",state:"TX",city:"Rockwall",address:"709B West Rusk St #906, Rockwall TX",rating:"★★★★★",projects:"Inwood, Vitae, Stafford Lakes",notes:"",lat:32.9330,lng:-96.4585},
+  {id:'s47',company:"Proficient Security & Data",status:"Onboarded",service_type:"Install & Support",contact:"Josh Cates",phone:"(469) 215-6843",email:"josh@psdintegrations.com",rate:"$120",state:"TX",city:"Dallas",address:"13155 Noel Rd, Suite 900, Dallas TX 75240",rating:"",projects:"",notes:"",lat:32.9217,lng:-96.8026},
+  {id:'s48',company:"SOLITECH LLC",status:"Onboarded",service_type:"Support Only",contact:"Christian Solis",phone:"703-220-9045",email:"csolis@solitech.us",rate:"$95",state:"VA",city:"Springfield",address:"8136 Old Keene Mill Rd, Springfield VA",rating:"★★★★★",projects:"Service Call",notes:"IT company, after-install IT issues",lat:38.7729,lng:-77.1938},
+  {id:'s49',company:"Security Logistics",status:"Onboarded",service_type:"Support Only",contact:"Jamie Conway",phone:"804-658-6358",email:"jconway@securitylogisticsllc.com",rate:"",state:"VA",city:"Mechanicsville",address:"PO Box 1503, Mechanicsville VA 23116",rating:"☆☆☆☆☆",projects:"",notes:"Covers all VA only",lat:37.6087,lng:-77.3592},
+  {id:'s50',company:"Independent - Michael Griffin",status:"Onboarded",service_type:"Install & Support",contact:"Michael Griffin",phone:"410-208-8629",email:"mgrf0925@gmail.com",rate:"$75",state:"VA",city:"Norfolk",address:"2001 Cottontail Ct, Virginia Beach VA 23464",rating:"★★★★☆",projects:"Pinewell Station",notes:"",lat:36.7973,lng:-76.2286},
+  {id:'s51',company:"SeaCom Cabling Technology Solutions",status:"Onboarded",service_type:"Install & Support",contact:"Randy Lowery",phone:"(425) 317-8259",email:"rlowery@callseacom.com",rate:"$125",state:"WA",city:"Everett",address:"3014 Hoyt Avenue, Everett WA",rating:"★★★★★",projects:"",notes:"",lat:47.9790,lng:-122.1990},
+  {id:'s52',company:"The Tech Guys",status:"Onboarding In Progress",service_type:"Install & Support",contact:"Julian",phone:"206-629-8524",email:"contact@thosetechguys.com",rate:"",state:"WA",city:"Seattle",address:"774 Industry Dr, Tukwila, WA 98188",rating:"",projects:"",notes:"",lat:47.4682,lng:-122.2659},
+  {id:'s53',company:"One Force Security & IT",status:"Onboarding In Progress",service_type:"Install & Support",contact:"Ashraf Hamada",phone:"316-680-3936",email:"amnhamada@gmail.com",rate:"$125",state:"KS",city:"Wichita",address:"330 N Broadway St, Wichita, KS 67220",rating:"",projects:"",notes:"",lat:37.6922,lng:-97.3375},
+  {id:'s54',company:"Die Hardt",status:"Onboarded",service_type:"Install & Support",contact:"Cale",phone:"515-789-0088",email:"cale@diehardt.com",rate:"$120",state:"IA",city:"Waukee",address:"1756-1700 Glenleven Terrace, West Des Moines IA 50266",rating:"",projects:"",notes:"",lat:41.5997,lng:-93.8877},
+  {id:'s55',company:"Northern Nevada Low Voltage",status:"Onboarded",service_type:"Install Only",contact:"Austin",phone:"775-800-6381",email:"austin@nnlowvoltage.com",rate:"$150",state:"NV",city:"Silver Springs",address:"12060 Shawnee Rd, Silver Springs NV 89429",rating:"",projects:"",notes:"",lat:39.4018,lng:-119.2282},
+  {id:'s56',company:"Jax Low Voltage",status:"Onboarded",service_type:"Install & Support",contact:"Kirk Herron",phone:"904-626-9854",email:"kirk.herron@jaxlowvoltage.com",rate:"$176.76",state:"FL",city:"Jacksonville",address:"3047-2 St. John's Bluff Rd S, Jacksonville FL 32246",rating:"",projects:"",notes:"",lat:30.2784,lng:-81.5281},
+  {id:'s57',company:"QTech LLC",status:"Onboarded",service_type:"Install & Support",contact:"Sergio K",phone:"847-766-9752",email:"sergei.k@qtechllc.org",rate:"$100",state:"IL",city:"Buffalo Grove",address:"2150 E Lake Cook Rd, Buffalo Grove IL 60089",rating:"",projects:"",notes:"",lat:42.1503,lng:-87.9673},
+  {id:'s58',company:"Security & Smarthome Pros",status:"Onboarded",service_type:"Install & Support",contact:"Marilyn Rice",phone:"928-843-7767",email:"mrice@sshpros.com",rate:"$125",state:"UT",city:"Salt Lake City",address:"135 E Backhand Ln, Lehi UT 84043",rating:"",projects:"",notes:"",lat:40.3916,lng:-111.8508},
+  {id:'s59',company:"Integrity Integrations",status:"Onboarding In Progress",service_type:"Install & Support",contact:"Aric",phone:"406-850-1252",email:"integrityintegrationsllc@gmail.com",rate:"$135",state:"MT",city:"Billings",address:"1603 Cherry Creek Loop, Billings MT 59105",rating:"",projects:"",notes:"",lat:45.7833,lng:-108.5007},
+  {id:'s60',company:"Net Solutions and Security",status:"Onboarded",service_type:"Install & Support",contact:"Dominic",phone:"512-944-5676",email:"dominic@nss1.org",rate:"$120",state:"TX",city:"Austin",address:"3105 W Slaughter Ln, Austin TX",rating:"",projects:"",notes:"",lat:30.1858,lng:-97.8530},
+  {id:'s61',company:"Panoptic Surveillance LLC",status:"Onboarding In Progress",service_type:"Install & Support",contact:"Rahib Ismiyev",phone:"+1 346 582 2049",email:"sales@panopticsurveillance.com",rate:"",state:"TX",city:"Houston",address:"11251 Northwest Fwy Suite 320, Houston, TX 77092",rating:"",projects:"",notes:"Goes by Robbie. Also operates as Houston Security Solutions. Does low voltage and electrical.",lat:29.8174,lng:-95.4708},
+  {id:'s62',company:"Eclipse Lighting & Electrical",status:"Onboarding In Progress",service_type:"Install & Support",contact:"Rob Bryan",phone:"714-747-2290",email:"rob@eclipselightingservices.com",rate:"$130",state:"CA",city:"Anaheim",address:"935 E. Discovery Lane, Anaheim, CA 92801",rating:"",projects:"",notes:"Account Manager. After-hours: (714) 264-5725. Ext 123. Low voltage, also does electrical.",lat:33.8366,lng:-117.8603},
+  {id:'s63',company:"Cablatel",status:"Onboarding In Progress",service_type:"Install & Support",contact:"",phone:"",email:"info@cablatel.com",rate:"$80",state:"QC",city:"Montreal",address:"Montreal, QC, Canada",rating:"",projects:"",notes:"Montreal sub. Rate is $80/hr CAD. Internet & Network Cabling.",lat:45.5017,lng:-73.5673},
+  {id:'s64',company:"Barewire LLC",status:"Onboarding In Progress",service_type:"Install & Support",contact:"Felix Garcia",phone:"214-868-1725",email:"Felix.garcia@barewirellc.com",rate:"$95",state:"TX",city:"DeSoto",address:"DeSoto / DFW, TX",rating:"",projects:"",notes:"4 technicians. Service rate $125 (includes first hour). Travel available outside DFW at hourly travel rate. 25-mile radius of DFW included.",lat:32.5896,lng:-96.8559},
+  {id:'s65',company:"Communication Solutions",status:"Onboarding In Progress",service_type:"Install & Support",contact:"Karen Gillen",phone:"",email:"",rate:"$110",state:"FL",city:"Jacksonville",address:"Jacksonville, FL",rating:"",projects:"",notes:"",lat:30.3322,lng:-81.6557},
+  {id:'s66',company:"Elite Connect LLC",status:"Onboarding In Progress",service_type:"Install & Support",contact:"Matthew Cox",phone:"",email:"",rate:"$85",state:"VA",city:"Virginia Beach",address:"Virginia Beach, VA",rating:"",projects:"",notes:"",lat:36.8529,lng:-75.9780}
+];
+
+const REAL_GAPS = {
+  full: [
+    {
+      name: 'Metropolis / Southern IL',
+      lat: 37.1503, lng: -88.7320,
+      deal: '$30K active deal (75% stage) — DOT Transportation mobile deal',
+      atRisk: '$30K',
+      techCount: 0,
+      note: 'QTech in Buffalo Grove is ~4 hrs away, too far. Need 2–3 techs in southern IL / St. Louis metro.',
+      urgency: 'high'
+    },
+    {
+      name: 'Colorado Springs, CO',
+      lat: 38.8339, lng: -104.8214,
+      deal: 'No active deal this week — known gap market',
+      atRisk: '$0 (pipeline risk)',
+      techCount: 0,
+      note: 'Infusion Technologies (Denver, ~70 mi) could stretch for one-offs. Need 1–2 dedicated local techs if deals enter pipeline.',
+      urgency: 'medium'
+    }
+  ],
+  partial: [
+    {
+      name: 'Billings, MT',
+      lat: 45.7833, lng: -108.5007,
+      deal: '$144K, 4 deals (75% stage) — Westcorp portfolio',
+      atRisk: '$144K',
+      techCount: '0 active (1 onboarding)',
+      note: 'Integrity Integrations is onboarding but not yet active. Urgently need to finalize onboarding + recruit 1–2 more MT techs.',
+      urgency: 'critical'
+    },
+    {
+      name: 'Tallahassee, FL',
+      lat: 30.4518, lng: -84.2807,
+      deal: '$68K, 1 deal (75% stage)',
+      atRisk: '$68K',
+      techCount: 1,
+      note: 'Low Voltage Cabling (Panama City, ~100 mi) + Arcitechx (support-only, same location). Functionally 1 install tech at max range. Need 1–2 local Tallahassee / North FL techs.',
+      urgency: 'high'
+    },
+    {
+      name: 'Conyers, GA',
+      lat: 33.6673, lng: -84.0182,
+      deal: '$78K, 1 deal (75% stage)',
+      atRisk: '$78K',
+      techCount: 2,
+      note: 'Lockdown Protection (Atlanta, ~35 mi ★★★★★) + Knine All Systems (Douglasville, ~50 mi ★★★★★). 2 techs, need 1 more to hit target.',
+      urgency: 'medium'
+    },
+    {
+      name: 'Denver, CO',
+      lat: 39.7392, lng: -104.9903,
+      deal: '$44K, 3 deals (75% stage)',
+      atRisk: '$44K',
+      techCount: 1,
+      note: 'Infusion Technologies only — solid 5-star performer but solo. Deal volume growing. Need 1–2 more Denver-area contractors.',
+      urgency: 'high'
+    },
+    {
+      name: 'Reno, NV',
+      lat: 39.5296, lng: -119.8138,
+      deal: '$51K, 2 deals (90% stage — near closing)',
+      atRisk: '$51K',
+      techCount: 2,
+      note: 'Northern NV Low Voltage (Silver Springs, ~45 mi) + Memo Vasquez (Reno ★★★★★). 2 techs but below 2–3 target. Need 1 more before these deals close.',
+      urgency: 'high'
+    },
+    {
+      name: 'Chicago, IL',
+      lat: 41.8781, lng: -87.6298,
+      deal: '$42K, 1 deal (75% stage)',
+      atRisk: '$42K',
+      techCount: 1,
+      note: 'QTech LLC (Buffalo Grove, ~30 mi north). 1 tech only. Need 1–2 more Chicago-area contractors.',
+      urgency: 'medium'
+    },
+    {
+      name: 'Austin, TX',
+      lat: 30.2672, lng: -97.7431,
+      deal: '$36K, 1 deal (75% stage)',
+      atRisk: '$36K',
+      techCount: 1,
+      note: 'Net Solutions just onboarded as first local Austin tech. Team1Solutions (Houston, ~2.5 hrs) and Safeguard (DFW, ~3 hrs) are regional backups. Need 1 more local tech.',
+      urgency: 'medium'
+    },
+    {
+      name: 'Bay Area / Oakland, CA',
+      lat: 37.6879, lng: -122.0840,
+      deal: '~$5K, 3 deals (mixed stages)',
+      atRisk: '$5K',
+      techCount: 2,
+      note: 'Telcom Structured Cabling (x2) + Kolapo (Oakland ★★★★☆). Edgeworth Security is support/door access only — does not count for CCTV installs. Need 1 more CCTV tech.',
+      urgency: 'low'
+    },
+    {
+      name: 'Sacramento / Roseville, CA',
+      lat: 38.5816, lng: -121.4944,
+      deal: '$12K, 1 deal (75% stage)',
+      atRisk: '$12K',
+      techCount: 2,
+      note: 'Kirill Belyakov (Sacramento ★★★★★) is solo local. Telcom (Bay Area, ~90 mi) is secondary. Need 1 more NorCal tech.',
+      urgency: 'low'
+    },
+    {
+      name: 'NJ / Morristown Area',
+      lat: 40.7957, lng: -74.4821,
+      deal: '$6K, 2 deals (mixed stages)',
+      atRisk: '$6K',
+      techCount: 0,
+      note: 'ICTS Protechs (Secaucus, ~35 mi) is 3-star rated and classified support-only — functionally 0 install techs. Recurring weak spot. Need 1–2 NJ installers.',
+      urgency: 'medium'
+    },
+    {
+      name: 'Salt Lake City, UT',
+      lat: 40.7608, lng: -111.8910,
+      deal: '$30K, 1 mobile deal (75% stage)',
+      atRisk: '$30K',
+      techCount: 1,
+      note: 'Security & Smarthome Pros (Lehi, ~25 mi south). 1 tech. Need 1–2 more.',
+      urgency: 'medium'
+    }
+  ],
+  unknown: [
+    { name: 'Truckbays Partnership (x2)', deal: '~$1.5M multi-site', note: 'No standard proposal address — needs Drive lookup' },
+    { name: 'Brixmor Mobile', deal: '$108K', note: '"Mobile" location ambiguous — needs clarification' },
+    { name: 'Miller Bros (x3)', deal: '~$52K', note: 'Location unclear — needs Drive lookup' },
+    { name: 'Residences at Hayes / Pennrose', deal: '$45K', note: 'New deal, address not pulled yet' },
+    { name: 'St. Stephens / Pennrose', deal: '$20K', note: 'New deal' },
+    { name: 'TRG Gallery at Marti Park', deal: '$15K', note: 'New deal' },
+    { name: 'Randolph Village / Amurcon', deal: '$28K', note: 'New deal' }
+  ]
+};
+
+
+let INSTALLERS=[], currentUser=null, isAdmin=false;
+let currentFilter='all', currentSearch='';
+let circlesOn=false, satelliteOn=false, gapMarkersOn=true, gapOpen=true;
+let editingId=null, activeNotesId=null;
+const gapMarkers=[];
+const MILE=1609.34;
+
+// MAP
+const map = L.map('map',{zoomControl:true,preferCanvas:true}).setView([38.5,-96],5);
+const tileL = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'OpenStreetMap',maxZoom:19}).addTo(map);
+const tileS = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
+map.getContainer().style.filter='saturate(1.15) brightness(1.02)';
+function toggleSatellite(){satelliteOn=!satelliteOn;var b=document.getElementById('hsat');if(satelliteOn){tileS.addTo(map);map.removeLayer(tileL);map.getContainer().style.filter='none';b.classList.add('on');}else{tileL.addTo(map);map.removeLayer(tileS);map.getContainer().style.filter='saturate(1.15) brightness(1.02)';b.classList.remove('on');}}
+function toggleCircles(){circlesOn=!circlesOn;document.getElementById('hcov').classList.toggle('on',circlesOn);applyVis();}
+function toggleGapM(){gapMarkersOn=!gapMarkersOn;document.getElementById('hgap').classList.toggle('on',gapMarkersOn);gapMarkers.forEach(function(m){gapMarkersOn?m.addTo(map):map.removeLayer(m);});}
+document.getElementById('map').insertAdjacentHTML('beforeend','<div id="leg"><h4>Service Type</h4><div class="lr"><div class="ld" style="background:#378ADD"></div>Install &amp; Support</div><div class="lr"><div class="ld" style="background:#639922"></div>Install Only</div><div class="lr"><div class="ld" style="background:#EF9F27"></div>Support Only</div><div class="lr"><div class="ld" style="background:#378ADD;outline:2px dashed #2dba5a;outline-offset:2px"></div>In Progress</div></div>');
+
+// AUTH - Supabase (admin creates accounts; no public sign-up)
+let sbClient=null;
+
+function doLogin(){
+  var email=document.getElementById('lemail').value.trim();
+  var pass=document.getElementById('lpass').value;
+  var err=document.getElementById('lerr');
+  var btn=document.getElementById('lbtn');
+  err.style.color='';
+  err.textContent='';
+  if(!email){err.textContent='Enter your email.';return;}
+  if(!pass){err.textContent='Enter your password.';return;}
+  btn.disabled=true; btn.textContent='Signing in...';
+  getSupabase().then(function(sb){
+    return sb.auth.signInWithPassword({email:email,password:pass}).then(function(res){
+      if(res.error)throw res.error;
+      if(res.data&&res.data.user) onSignedIn(res.data.user);
+    });
+  }).catch(function(e){
+    err.style.color='#c03030';
+    err.textContent=e.message||'Sign in failed.';
+  }).finally(function(){
+    btn.disabled=false;
+    btn.textContent='Sign In';
+  });
+}
+
+function doForgotPassword(){
+  var email=document.getElementById('lemail').value.trim();
+  var err=document.getElementById('lerr');
+  err.style.color='';
+  err.textContent='';
+  if(!email){err.style.color='#c03030';err.textContent='Enter your email above first, then click "Forgot password?"';return;}
+  getSupabase().then(function(sb){
+    return sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href}).then(function(res){
+      if(res.error)throw res.error;
+      err.style.color='#1a7a3a';
+      err.textContent='If an account exists for '+email+', a reset link has been sent to that inbox.';
+    });
+  }).catch(function(e){
+    err.style.color='#c03030';
+    err.textContent=e.message||'Could not send reset email.';
+  });
+}
+
+document.getElementById('lemail').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('lpass').focus();});
+document.getElementById('lpass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+
+function doLogout(){
+  if(sbClient) sbClient.auth.signOut();
+  currentUser=null; isAdmin=false;
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+function onSignedIn(user){
+  currentUser=user;
+  isAdmin=ADMIN_EMAILS.includes(user.email.toLowerCase());
+  document.getElementById('ueml').textContent=user.email.split('@')[0];
+  document.getElementById('urol').textContent=isAdmin?'Admin':'Viewer';
+  document.getElementById('hadd').style.display=isAdmin?'inline-block':'none';
+  document.getElementById('login-screen').classList.add('hidden');
+  loadData();
+}
+
+function getSupabase(){
+  if(sbClient) return Promise.resolve(sbClient);
+  return new Promise(function(resolve,reject){
+    var s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+    s.onload=function(){
+      sbClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+      // Restore existing session on page load
+      sbClient.auth.getSession().then(function(res){
+        if(res.data&&res.data.session&&res.data.session.user){
+          onSignedIn(res.data.session.user);
+        }
+      });
+      resolve(sbClient);
+    };
+    s.onerror=function(){ reject(new Error('Could not load auth library - check internet')); };
+    document.head.appendChild(s);
+  });
+}
+
+// DATA
+const LS_KEY='cld_v5';
+function saveLocal(records){try{localStorage.setItem(LS_KEY,JSON.stringify(records.map(function(d){var r=Object.assign({},d);delete r._marker;delete r._circle;delete r._index;return r;})));}catch(e){}}
+function loadLocal(){try{var r=localStorage.getItem(LS_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+function hydrateNotes(records){return records.map(function(d){if(!Array.isArray(d._notes)){try{d._notes=d.notes_log?JSON.parse(d.notes_log):[];}catch(e){d._notes=[];}}return d;});}
+function setSyncStatus(msg){document.getElementById('sync').textContent=msg;}
+
+function loadData(){setSyncStatus('Loading...');var cached=loadLocal();if(cached&&cached.length>0){renderAll(hydrateNotes(cached));setSyncStatus('Loaded ('+cached.length+')');}else{renderAll(hydrateNotes(SEED_DATA));saveLocal(SEED_DATA);setSyncStatus('Defaults loaded');}loadSupabase().then(function(){return sbClient.from(TABLE).select('*').order('company');}).then(function(res){if(res.error)throw res.error;if(res.data&&res.data.length>0){clearMarkers();renderAll(hydrateNotes(res.data));saveLocal(res.data);setSyncStatus('Live - '+res.data.length+' installers');}else{var rows=SEED_DATA.map(function(d){var r=Object.assign({},d);delete r.id;return r;});return sbClient.from(TABLE).insert(rows);}}).catch(function(e){setSyncStatus('Offline');console.warn('Supabase:',e);});}
+function loadSupabase(){
+  if(sbClient) return Promise.resolve(sbClient);
+  return getSupabase();
+}
+
+// MARKERS
+function clearMarkers(){INSTALLERS.forEach(function(d){if(d._marker)map.removeLayer(d._marker);if(d._circle)map.removeLayer(d._circle);});INSTALLERS=[];}
+function renderAll(records){clearMarkers();INSTALLERS=records.map(function(d,i){return Object.assign({},d,{_index:i});});INSTALLERS.forEach(addMarker);applyVis();updateStats();renderGaps();}
+function makeIcon(color,dashed){var ds=dashed?'stroke-dasharray="4,3"':'',sc=dashed?'#2dba5a':'rgba(0,0,0,0.22)',sw=dashed?2.5:1.5;return L.divIcon({html:'<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36"><filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-opacity="0.25"/></filter><path filter="url(#s)" d="M14 1C7.37 1 2 6.37 2 13c0 10 12 22 12 22s12-12 12-22C26 6.37 20.63 1 14 1z" fill="'+color+'" stroke="'+sc+'" stroke-width="'+sw+'" '+ds+'/><circle cx="14" cy="13" r="6" fill="white" fill-opacity="0.9"/></svg>',className:'',iconSize:[28,36],iconAnchor:[14,36],popupAnchor:[0,-38]});}
+function escH(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtDate(ts){if(!ts)return'';var d=new Date(ts);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
+function popupHTML(d){var tc=d.service_type==='Install & Support'?'pt-is':d.service_type==='Install Only'?'pt-io':'pt-so';var eb=isAdmin?'<button class="pe" onclick="openModal(\''+d.id+'\')">Edit</button>':'';var notes=(d._notes||[]).slice(-2).reverse();var np=notes.length?notes.map(function(n){return'<div class="pnp"><div class="pnpm">'+escH(n.author||'Team')+' - '+fmtDate(n.ts)+'</div>'+escH(n.text)+'</div>';}).join(''):'<div style="font-size:11px;color:#9abcd0;font-style:italic">No notes yet.</div>';var isOB=d.status==='Onboarding In Progress';var stog=isAdmin?'<button class="pst" style="'+(isOB?'background:#d4f0df;color:#0a5a28;border-color:#7dd09a':'background:#fef0d5;color:#8a4a00;border-color:#f0c060')+'" onclick="toggleStatus(\''+d.id+'\')">'+(isOB?'Mark Onboarded':'Mark In Progress')+'</button>':'';return'<div class="pn">'+escH(d.company)+'</div><div class="pg">'+(d.contact?'<span class="pl">Contact</span><span class="pv">'+escH(d.contact)+'</span>':'')+(d.phone?'<span class="pl">Phone</span><span class="pv">'+escH(d.phone)+'</span>':'')+(d.email?'<span class="pl">Email</span><span class="pv" style="font-size:10px">'+escH(d.email)+'</span>':'')+(d.rate?'<span class="pl">Rate</span><span class="pv">'+escH(d.rate)+'/hr</span>':'')+(d.rating?'<span class="pl">Rating</span><span class="pv">'+d.rating+'</span>':'')+'</div><span class="pt '+tc+'">'+d.service_type+'</span><div style="margin-top:4px;font-size:10px;font-weight:600;color:'+(isOB?'#c07000':'#1a7a3a')+'">'+d.status+'</div>'+stog+'<div class="pns"><div class="pnl">Notes '+(d._notes&&d._notes.length?'('+d._notes.length+')':'')+'</div>'+np+'<button class="pno" onclick="openNotes(\''+d.id+'\')">+ Add / View Notes</button></div>'+eb;}
+function addMarker(d){var color=SVC[d.service_type]||'#378ADD',dashed=d.status==='Onboarding In Progress';d._marker=L.marker([d.lat,d.lng],{icon:makeIcon(color,dashed)}).bindPopup(popupHTML(d),{maxWidth:280}).addTo(map);d._circle=L.circle([d.lat,d.lng],{radius:100*MILE,color:color,fillColor:color,fillOpacity:0.07,weight:1.5,opacity:0.4,dashArray:'5,5'});}
+
+// FILTER
+function setFilter(f){currentFilter=f;['all','is','io','so'].forEach(function(x){var el=document.getElementById('f-'+x);el.className='fb';});var map2={'all':'all','Install & Support':'is','Install Only':'io','Support Only':'so'};var cls2={'all':'a-all','Install & Support':'a-is','Install Only':'a-io','Support Only':'a-so'};document.getElementById('f-'+map2[f]).classList.add(cls2[f]);applyVis();}
+function applySearch(q){currentSearch=q.toLowerCase();applyVis();}
+function isVis(d){if(currentFilter!=='all'&&d.service_type!==currentFilter)return false;if(currentSearch&&![d.company,d.city,d.state,d.contact].join(' ').toLowerCase().includes(currentSearch))return false;return true;}
+function applyVis(){var vis=[];INSTALLERS.forEach(function(d){var show=isVis(d);if(show){d._marker.addTo(map);if(circlesOn)d._circle.addTo(map);else map.removeLayer(d._circle);vis.push(d);}else{map.removeLayer(d._marker);map.removeLayer(d._circle);}});renderSidebar(vis);}
+
+// SIDEBAR
+function renderSidebar(list){document.getElementById('scount').textContent=list.length+' installers';document.getElementById('slist').innerHTML=list.map(function(d){var c=SVC[d.service_type]||'#378ADD';var b=d.status==='Onboarding In Progress'?'<span class="sbad bip">In Progress</span>':'<span class="sbad bon">Onboarded</span>';return'<div class="srow" onclick="zoomTo(\''+d.id+'\')">'+'<div class="sdot" style="background:'+c+'"></div>'+'<div class="sinf"><div class="sco" title="'+escH(d.company)+'">'+escH(d.company)+'</div>'+'<div class="sme">'+(d.city||'')+(d.city&&d.state?', ':'')+(d.state||'')+(d.contact?' - '+escH(d.contact):'')+'</div></div>'+b+'</div>';}).join('');}
+function zoomTo(id){var d=INSTALLERS.find(function(x){return String(x.id)===String(id);});if(!d)return;map.setView([d.lat,d.lng],11,{animate:true});setTimeout(function(){d._marker.openPopup();},400);}
+
+// STATS
+function updateStats(){document.getElementById('s-tot').textContent=INSTALLERS.length;document.getElementById('s-is').textContent=INSTALLERS.filter(function(d){return d.service_type==='Install & Support';}).length;document.getElementById('s-io').textContent=INSTALLERS.filter(function(d){return d.service_type==='Install Only';}).length;document.getElementById('s-so').textContent=INSTALLERS.filter(function(d){return d.service_type==='Support Only';}).length;document.getElementById('s-5s').textContent=INSTALLERS.filter(function(d){return d.rating&&d.rating.includes('\u2605\u2605\u2605\u2605\u2605');}).length;var rates=INSTALLERS.filter(function(d){return d.rate;}).map(function(d){return parseFloat(d.rate.replace(/[^0-9.]/g,''));}).filter(function(n){return!isNaN(n);});document.getElementById('s-av').textContent=rates.length?'$'+Math.round(rates.reduce(function(a,b){return a+b;},0)/rates.length):'-';document.getElementById('s-ob').textContent=INSTALLERS.filter(function(d){return d.status==='Onboarding In Progress';}).length;}
+
+// GAPS
+function renderGaps(){gapMarkers.forEach(function(m){map.removeLayer(m);});gapMarkers.length=0;var all=REAL_GAPS.full.concat(REAL_GAPS.partial);all.forEach(function(g){var col=REAL_GAPS.full.includes(g)?'#e03030':g.urgency==='critical'?'#e03030':g.urgency==='high'?'#e06820':'#d4aa00';var circle=L.circle([g.lat,g.lng],{radius:80467,color:col,fillColor:col,fillOpacity:0.08,weight:2,opacity:0.5,dashArray:'6,4'});var icon=L.divIcon({html:'<div style="background:'+col+';color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;box-shadow:0 2px 6px rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.6)">!</div>',className:'',iconSize:[22,22],iconAnchor:[11,11]});var isFull=REAL_GAPS.full.includes(g);var marker=L.marker([g.lat,g.lng],{icon:icon}).bindPopup('<div style="font-family:sans-serif;min-width:200px"><div style="font-weight:800;color:#0d2a4a;font-size:13px;margin-bottom:5px">'+escH(g.name)+'</div><div style="font-size:11px;color:'+(isFull?'#e03030':'#c07800')+';font-weight:700;margin-bottom:4px">'+(isFull?'FULL GAP':'PARTIAL GAP')+'</div><div style="font-size:11px;color:#5a7a9a;margin-bottom:2px"><b>Deal:</b> '+escH(g.deal)+'</div><div style="font-size:11px;color:#5a7a9a;margin-bottom:2px"><b>At Risk:</b> '+escH(g.atRisk)+'</div><div style="font-size:11px;color:#5a7a9a;margin-bottom:5px"><b>Techs:</b> '+escH(String(g.techCount))+'</div><div style="font-size:11px;padding:5px 8px;background:#fff8e6;border-radius:6px;border-left:3px solid #f5c400">'+escH(g.note)+'</div><button onclick="window.open(\'https://www.google.com/search?q=\'+encodeURIComponent(\'CCTV low voltage installer '+escH(g.name)+'\'),\'_blank\')" style="margin-top:7px;width:100%;padding:5px;border-radius:8px;border:1.5px solid #1a5fa0;background:#f0f8ff;color:#1a5fa0;cursor:pointer;font-size:10px;font-weight:700">Find Installers</button></div>',{maxWidth:270});if(gapMarkersOn){circle.addTo(map);marker.addTo(map);}gapMarkers.push(circle,marker);});var fc=REAL_GAPS.full.length,pc=REAL_GAPS.partial.length;document.getElementById('s-gp').textContent=fc+'/'+pc;document.getElementById('gpsum').textContent=fc+' full - '+pc+' partial - $590K+ at risk';var html='<div style="padding:5px 12px 3px;font-size:9px;font-weight:800;color:#e05555;text-transform:uppercase;background:#fff5f5;border-bottom:1px solid #fde0e0">FULL GAPS ('+fc+')</div>';html+=REAL_GAPS.full.map(function(g){return gRow(g,'full');}).join('');html+='<div style="padding:5px 12px 3px;font-size:9px;font-weight:800;color:#c07800;text-transform:uppercase;background:#fffbf0;border-bottom:1px solid #fdecc0;border-top:2px solid #f0f4f8">PARTIAL GAPS ('+pc+')</div>';html+=REAL_GAPS.partial.slice().sort(function(a,b){var o={critical:0,high:1,medium:2,low:3};return(o[a.urgency]||2)-(o[b.urgency]||2);}).map(function(g){return gRow(g,'partial');}).join('');html+='<div style="padding:5px 12px 3px;font-size:9px;font-weight:800;color:#5a2a8a;text-transform:uppercase;background:#f8f0ff;border-top:2px solid #e8e0f0">UNKNOWN ('+REAL_GAPS.unknown.length+')</div>';html+=REAL_GAPS.unknown.map(function(u){return'<div style="padding:7px 12px;border-bottom:1px solid #eef5fb;display:flex;gap:8px;align-items:flex-start"><span style="background:#f0e8ff;color:#5a2a8a;border:1px solid #c8a0e8;border-radius:6px;font-size:9px;font-weight:800;padding:2px 6px;flex-shrink:0">UNKNOWN</span><div><div style="font-weight:700;color:#0d2a4a;font-size:11px">'+escH(u.name)+'</div><div style="font-size:10px;color:#8ab0cc">'+escH(u.deal)+' - '+escH(u.note)+'</div></div></div>';}).join('');document.getElementById('gpl').innerHTML=html;document.getElementById('gpe').style.display='none';}
+function gRow(g,type){var isFull=type==='full';var bc=isFull?'gbf':g.urgency==='critical'?'gbc':g.urgency==='high'?'gbh':'gbp';var bl=isFull?'FULL GAP':g.urgency==='critical'?'CRITICAL':g.urgency==='high'?'HIGH':'PARTIAL';var q=encodeURIComponent('CCTV low voltage installer '+g.name);return'<div class="gi" onclick="map.setView(['+g.lat+','+g.lng+'],9,{animate:true})"><div><span class="gb '+bc+'">'+bl+'</span><div style="font-size:9px;color:#a0b8cc;text-align:center;margin-top:2px">'+escH(g.atRisk)+'</div></div><div class="gin"><div class="gt">'+escH(g.name)+'</div><div class="gs">'+escH(typeof g.techCount==='number'?g.techCount+' tech(s) - ':'')+escH(g.deal.split('-')[0].trim())+'</div></div><button class="gfb" onclick="event.stopPropagation();window.open(\'https://www.google.com/search?q='+q+'\',\'_blank\')">Find</button></div>';}
+function toggleGapPanel(){gapOpen=!gapOpen;document.getElementById('gp').classList.toggle('collapsed',!gapOpen);document.getElementById('gptog').textContent=gapOpen?'\u25be':'\u25b8';}
+function toggleSidebar(){var sb=document.getElementById('sidebar');sb.classList.toggle('collapsed');document.getElementById('stog').textContent=sb.classList.contains('collapsed')?'\u25b8':'\u25be';}
+
+// MODAL
+function openModal(id){if(!isAdmin)return;editingId=id||null;document.getElementById('mt').textContent=editingId?'Edit Installer':'Add Installer';document.getElementById('mdl').style.display=editingId?'block':'none';['fc','fr','fn','fp','fe','fa','fci','fsa','fpr','fno','fos'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});document.getElementById('fst').value='Onboarded';document.getElementById('fsv').value='Install & Support';document.getElementById('fg').value='';document.getElementById('flat').value='';document.getElementById('flng').value='';document.getElementById('gcs').textContent='';document.getElementById('ait').value='';document.getElementById('aist').textContent='';if(editingId){var d=INSTALLERS.find(function(x){return String(x.id)===String(editingId);});if(!d)return;document.getElementById('fc').value=d.company||'';document.getElementById('fr').value=d.rate||'';document.getElementById('fn').value=d.contact||'';document.getElementById('fp').value=d.phone||'';document.getElementById('fe').value=d.email||'';document.getElementById('fa').value=d.address||'';document.getElementById('fci').value=d.city||'';document.getElementById('fsa').value=d.state||'';document.getElementById('fpr').value=d.projects||'';document.getElementById('fno').value=d.notes||'';document.getElementById('fst').value=d.status||'Onboarded';document.getElementById('fsv').value=d.service_type||'Install & Support';document.getElementById('fg').value=d.rating||'';document.getElementById('flat').value=d.lat||'';document.getElementById('flng').value=d.lng||'';}document.getElementById('mo').classList.add('open');map.closePopup();}
+function closeModal(){document.getElementById('mo').classList.remove('open');}
+document.getElementById('mo').addEventListener('click',function(e){if(e.target===document.getElementById('mo'))closeModal();});
+
+function geocode(){var addr=document.getElementById('fa').value.trim();if(!addr){toast('Enter an address first');return;}var s=document.getElementById('gcs');s.textContent='Looking up...';s.style.color='#6a9abf';fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&q='+encodeURIComponent(addr)+'&limit=1&countrycodes=us',{headers:{'Accept-Language':'en'}}).then(function(r){return r.json();}).then(function(data){if(data&&data.length>0){document.getElementById('flat').value=parseFloat(data[0].lat).toFixed(5);document.getElementById('flng').value=parseFloat(data[0].lon).toFixed(5);var a=data[0].address||{};if(!document.getElementById('fci').value)document.getElementById('fci').value=a.city||a.town||a.village||'';if(!document.getElementById('fsa').value){var ST={'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA','Colorado':'CO','Connecticut':'CT','Delaware':'DE','Florida':'FL','Georgia':'GA','Hawaii':'HI','Idaho':'ID','Illinois':'IL','Indiana':'IN','Iowa':'IA','Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD','Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO','Montana':'MT','Nebraska':'NE','Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND','Ohio':'OH','Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT','Virginia':'VA','Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY','District of Columbia':'DC'};document.getElementById('fsa').value=a.state_code||ST[a.state]||'';}s.textContent='Found!';s.style.color='#1a7a3a';}else{s.textContent='Not found - enter lat/lng manually.';s.style.color='#c07000';}}).catch(function(){s.textContent='Geocoding failed.';s.style.color='#c03030';});}
+
+function getPayload(){return{company:document.getElementById('fc').value.trim(),rate:document.getElementById('fr').value.trim(),contact:document.getElementById('fn').value.trim(),phone:document.getElementById('fp').value.trim(),email:document.getElementById('fe').value.trim(),address:document.getElementById('fa').value.trim(),city:document.getElementById('fci').value.trim(),state:document.getElementById('fsa').value.trim(),projects:document.getElementById('fpr').value.trim(),notes:document.getElementById('fno').value.trim(),status:document.getElementById('fst').value,service_type:document.getElementById('fsv').value,rating:document.getElementById('fg').value,lat:parseFloat(document.getElementById('flat').value),lng:parseFloat(document.getElementById('flng').value)};}
+
+function saveInstaller(){if(!isAdmin)return;var p=getPayload();if(!p.company){toast('Company name required');return;}if(isNaN(p.lat)||isNaN(p.lng)){toast('Coordinates needed - click Geocode');return;}closeModal();if(editingId){var idx=INSTALLERS.findIndex(function(x){return String(x.id)===String(editingId);});if(idx!==-1){if(INSTALLERS[idx]._marker)map.removeLayer(INSTALLERS[idx]._marker);if(INSTALLERS[idx]._circle)map.removeLayer(INSTALLERS[idx]._circle);INSTALLERS[idx]=Object.assign({},INSTALLERS[idx],p);addMarker(INSTALLERS[idx]);applyVis();updateStats();renderGaps();saveLocal(INSTALLERS);map.setView([p.lat,p.lng],12,{animate:true});setTimeout(function(){if(INSTALLERS[idx]._marker)INSTALLERS[idx]._marker.openPopup();},400);}toast('Updated '+p.company);if(sbClient&&!String(editingId).startsWith('local_')&&!String(editingId).startsWith('s'))sbClient.from(TABLE).update(p).eq('id',editingId).then(function(){});}else{var lid='local_'+Date.now();var nr=Object.assign({},p,{id:lid,_notes:[],_index:INSTALLERS.length});INSTALLERS.push(nr);addMarker(nr);applyVis();updateStats();renderGaps();saveLocal(INSTALLERS);map.setView([p.lat,p.lng],12,{animate:true});setTimeout(function(){if(nr._marker)nr._marker.openPopup();},500);toast('Added '+p.company);if(sbClient)sbClient.from(TABLE).insert([p]).select().single().then(function(res){if(res.data){var i=INSTALLERS.findIndex(function(x){return x.id===lid;});if(i!==-1){if(INSTALLERS[i]._marker)map.removeLayer(INSTALLERS[i]._marker);if(INSTALLERS[i]._circle)map.removeLayer(INSTALLERS[i]._circle);INSTALLERS[i]=Object.assign({},res.data,{_notes:[],_index:i});addMarker(INSTALLERS[i]);applyVis();}saveLocal(INSTALLERS);}}).catch(function(){});}}
+function deleteInstaller(){if(!isAdmin||!editingId)return;if(!confirm('Remove this installer?'))return;var idx=INSTALLERS.findIndex(function(x){return String(x.id)===String(editingId);});if(idx!==-1){if(INSTALLERS[idx]._marker)map.removeLayer(INSTALLERS[idx]._marker);if(INSTALLERS[idx]._circle)map.removeLayer(INSTALLERS[idx]._circle);INSTALLERS.splice(idx,1);INSTALLERS.forEach(function(d,i){d._index=i;});applyVis();updateStats();renderGaps();saveLocal(INSTALLERS);}closeModal();toast('Removed');if(sbClient&&!String(editingId).startsWith('local_')&&!String(editingId).startsWith('s'))sbClient.from(TABLE).delete().eq('id',editingId).then(function(){});}
+function toggleStatus(id){var d=INSTALLERS.find(function(x){return String(x.id)===String(id);});if(!d||!isAdmin)return;d.status=d.status==='Onboarding In Progress'?'Onboarded':'Onboarding In Progress';if(d._marker)map.removeLayer(d._marker);if(d._circle)map.removeLayer(d._circle);addMarker(d);d._marker.addTo(map);d._marker.openPopup();applyVis();updateStats();saveLocal(INSTALLERS);toast('Status updated');if(sbClient&&!String(id).startsWith('local_')&&!String(id).startsWith('s'))sbClient.from(TABLE).update({status:d.status}).eq('id',id).then(function(){});}
+
+// AI PARSE
+function parseAI(){var raw=document.getElementById('ait').value.trim();if(!raw){toast('Paste some text first');return;}var btn=document.getElementById('aib');var stat=document.getElementById('aist');btn.disabled=true;btn.textContent='Parsing...';stat.textContent='';stat.className='';fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:800,system:'Extract installer info from text. Return ONLY valid JSON with keys: company, contact, phone, email, address, city, state, rate, service_type, notes. service_type must be exactly "Install & Support", "Install Only", or "Support Only". rate format "$125". state as 2-letter code. Empty string for missing.',messages:[{role:'user',content:'Extract from: '+raw}]})}).then(function(r){return r.json();}).then(function(data){var text=(data.content&&data.content[0]&&data.content[0].text)||'';var parsed=JSON.parse(text.replace(/```json?|```/g,'').trim());var fm={company:'fc',contact:'fn',phone:'fp',email:'fe',address:'fa',city:'fci',state:'fsa',rate:'fr',notes:'fno'};var filled=0;Object.keys(fm).forEach(function(k){if(parsed[k]){var e=document.getElementById(fm[k]);if(e&&!e.value){e.value=parsed[k];e.style.borderColor='#4dc46a';setTimeout(function(){e.style.borderColor='';},2000);filled++;}}});if(parsed.service_type&&['Install & Support','Install Only','Support Only'].includes(parsed.service_type))document.getElementById('fsv').value=parsed.service_type;if(parsed.address&&!document.getElementById('flat').value)setTimeout(geocode,300);document.getElementById('ait').value='';stat.textContent='Filled '+filled+' fields';stat.className='ok';}).catch(function(e){stat.textContent='Failed: '+e.message;stat.className='err';}).finally(function(){btn.disabled=false;btn.textContent='Extract Info into Form';});}
+
+// NOTES
+function openNotes(id){activeNotesId=id;var d=INSTALLERS.find(function(x){return String(x.id)===String(id);});if(!d)return;document.getElementById('npt').textContent=d.company;document.getElementById('nps').textContent=(d.city||'')+(d.city&&d.state?', ':'')+(d.state||'');document.getElementById('nptxt').value='';document.getElementById('npch').textContent='0 / 500';renderNoteHist(d._notes||[]);document.getElementById('np').classList.add('open');map.closePopup();setTimeout(function(){document.getElementById('nptxt').focus();},320);}
+function closeNotes(){document.getElementById('np').classList.remove('open');activeNotesId=null;}
+function renderNoteHist(notes){var el=document.getElementById('nph2');if(!notes||!notes.length){el.innerHTML='<div id="npe">No notes yet.</div>';return;}el.innerHTML=notes.slice().sort(function(a,b){return new Date(b.ts)-new Date(a.ts);}).map(function(n){return'<div class="ne"><div class="nem"><span class="nea">'+escH(n.author||'Team')+'</span><span>-</span><span>'+fmtDate(n.ts)+'</span></div><div class="net">'+escH(n.text)+'</div></div>';}).join('');}
+function saveNote(){if(!activeNotesId)return;var text=document.getElementById('nptxt').value.trim();if(!text){toast('Type a note first');return;}if(text.length>500){toast('Note too long');return;}var d=INSTALLERS.find(function(x){return String(x.id)===String(activeNotesId);});if(!d)return;if(!Array.isArray(d._notes))d._notes=[];d._notes.push({text:text,author:currentUser?currentUser.email.split('@')[0]:'Team',ts:new Date().toISOString()});saveLocal(INSTALLERS);if(d._marker)d._marker.setPopupContent(popupHTML(d));document.getElementById('nptxt').value='';document.getElementById('npch').textContent='0 / 500';renderNoteHist(d._notes);toast('Note saved');if(sbClient&&!String(activeNotesId).startsWith('local_')&&!String(activeNotesId).startsWith('s'))sbClient.from(TABLE).update({notes_log:JSON.stringify(d._notes)}).eq('id',activeNotesId).then(function(){});}
+
+// KML
+function downloadKML(e){e.preventDefault();var sm={'Install & Support':{c:'378ADD',id:'is'},'Install Only':{c:'639922',id:'io'},'Support Only':{c:'EF9F27',id:'so'}};var styles=Object.keys(sm).map(function(k){var v=sm[k];return'<Style id="'+v.id+'"><IconStyle><color>ff'+v.c+'</color><scale>1.1</scale><Icon><href>http://maps.google.com/mapfiles/ms/icons/blue-dot.png</href></Icon></IconStyle></Style>';}).join('');var pm=INSTALLERS.map(function(d){var sid=(sm[d.service_type]||sm['Install & Support']).id;return'<Placemark><name>'+escH(d.company)+'</name><styleUrl>#'+sid+'</styleUrl><Point><coordinates>'+d.lng+','+d.lat+',0</coordinates></Point></Placemark>';}).join('');var kml='<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document>'+styles+pm+'</Document></kml>';var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([kml],{type:'application/vnd.google-earth.kml+xml'}));a.download='installers.kml';a.click();}
+
+// TOAST
+function toast(msg,isErr){var t=document.getElementById('toast');t.textContent=msg;t.className='show'+(isErr?' err':'');setTimeout(function(){t.className='';},3000);}
+
+// BOOT - load map data immediately (behind login overlay), restore Supabase session in background
+(function(){
+  var cached=loadLocal();
+  if(cached&&cached.length>0){renderAll(hydrateNotes(cached));}
+  else{renderAll(hydrateNotes(SEED_DATA));}
+  // Try to restore Supabase session (handles page refresh when already logged in)
+  getSupabase().catch(function(){});
+})();
+
+</script>
+</body>
+</html>
